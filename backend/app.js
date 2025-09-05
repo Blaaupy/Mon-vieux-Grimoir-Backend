@@ -1,8 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 
+const path = require('path');
 const bookRoutes = require('./routes/bookRoute');
-const userRoutes = require('./routes/userRoute')
+const userRoutes = require('./routes/userRoute');
 
 mongoose.connect('***REMOVED***')
   .then(() => console.log('Connexion à MongoDB réussie !'))
@@ -20,5 +21,6 @@ app.use((req, res, next) => {
 
 app.use('/api/books', bookRoutes);
 app.use('/api/auth/', userRoutes);
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 module.exports = app;
