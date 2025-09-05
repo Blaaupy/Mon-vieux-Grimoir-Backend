@@ -1,7 +1,7 @@
 const Book = require('../models/Book');
 
 exports.createBook = (req, res, next) => {
-  const bookObject = JSON.parse(req.body.book);
+  const bookObject = req.body.book ? JSON.parse(req.body.book) : req.body;
   delete bookObject._id;
   delete bookObject._userId;
   const book = new Book({
@@ -13,7 +13,6 @@ exports.createBook = (req, res, next) => {
   book.save()
     .then(() => { res.status(201).json({ message: 'Livre enregistré !' })})
     .catch(error => { res.status(400).json({ error: error.message || error })});
-  console.error(error)
 };
 
 exports.modifyBook = (req, res, next) => {
