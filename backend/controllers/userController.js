@@ -4,18 +4,32 @@ require('dotenv').config(); // charge les variables d'environnement
 
 const User = require('../models/User');
 
+
 exports.signup = (req, res, next) => {
-    bcrypt.hash(req.body.password, 10)
+    const { email, password } = req.body;
+
+    // --- Vérification email avec regex ---
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: "Email invalide" });
+    }
+
+    // --- Vérification longueur mot de passe ---
+    if (password.length < 10) {
+        return res.status(400).json({ message: "Mot de passe trop court (10 caractères min)" });
+    }
+
+    // --- Hashage du mot de passe ---
+    bcrypt.hash(password, 10)
         .then(hash => {
-            const user = new User({
-                email: req.body.email,
-                password: hash
-            });
-            user.save()
-                .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
-                .catch(error => res.status(400).json({ error }));
+        const user = new User({
+            email: email,
+            password: hash
+        });
+        return user.save();
         })
-        .catch(error => res.status(500).json({ error }));
+        .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
+        .catch(error => res.status(400).json({ error }));
 };
 
 exports.login = (req, res, next) => {
