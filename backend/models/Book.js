@@ -16,18 +16,7 @@ const bookSchema = mongoose.Schema({
         ],
         default: []
     },
+    averageRating: { type: Number, default: 0 },
 });
-
-// Champ virtuel pour calculer la moyenne des notes
-bookSchema.virtual('averageRating').get(function () {
-    if (!this.ratings.length) return 0;
-    const total = this.ratings.reduce((acc, r) => acc + r.grade, 0);
-    return total / this.ratings.length;
-});
-
-// Pour inclure les virtuals quand on convertit en JSON
-bookSchema.set('toJSON', { virtuals: true });
-
-module.exports = mongoose.model('Book', bookSchema);
 
 module.exports = mongoose.model('Book', bookSchema);

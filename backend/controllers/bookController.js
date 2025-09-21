@@ -21,7 +21,9 @@ exports.createBook = (req, res, next) => {
 // --- Ajouter une note à un livre ---
 exports.postRating = (req, res) => {
   const { userId, rating } = req.body;
-  if (rating < 0 || rating > 5) return res.status(400).json({ message: 'La note doit être entre 0 et 5' });
+  if (rating < 0 || rating > 5) {
+    return res.status(400).json({ message: 'La note doit être entre 0 et 5' });
+  }
 
   Book.findOne({ _id: req.params.id })
     .then(book => {
@@ -30,10 +32,13 @@ exports.postRating = (req, res) => {
       // Vérifier si l'utilisateur a déjà noté
       const existingRating = book.ratings.find(r => r.userId === userId);
       if (existingRating) {
-        existingRating.grade = rating; // garde le champ grade déjà enregister
+        existingRating.grade = rating; // met à jour sa note
       } else {
         book.ratings.push({ userId, grade: rating });
       }
+
+      const total = book.ratings.reduce((acc, r) => acc + r.grade, 0);
+      book.averageRating = total / book.ratings.length;
 
       return book.save();
     })
@@ -53,6 +58,11 @@ exports.modifyBook = (req, res, next) => {
     .then(book => {
       if (!book) {
         return res.status(404).json({ message: 'Livre non trouvé.' });
+      }
+
+      // Vérification de propriété
+      if (book.userId !== req.auth.userId) {
+        return res.status(403).json({ message: 'Action non autorisée' });
       }
 
       if (req.file) {
@@ -83,6 +93,11 @@ exports.deleteBook = (req, res, next) => {
   Book.findOne({ _id: req.params.id })
     .then(book => {
       if (!book) return res.status(404).json({ message: 'Livre non trouvé' });
+
+      // Vérification de propriété
+      if (book.userId !== req.auth.userId) {
+        return res.status(403).json({ message: 'Action non autorisée' });
+      }
 
       const filename = book.imageUrl.split('/images/')[1];
       fs.unlink(`images/${filename}`, (err) => {
